@@ -1,6 +1,5 @@
 import websockets, json, traceback, os, asyncio, inspect, logging
-import websockets.client 
-import websockets.server
+from websockets.asyncio.server import serve
 from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
 
 from .client_management.client import Client
@@ -12,7 +11,7 @@ from .randomizers.skin_randomizer import Skin_Randomizer
 from .inventory_management.buddy_manager import Buddy_Manager
 from .randomizers.buddy_randomizer import Buddy_Randomizer
 
-from .sys_utilities.system import System
+from .sys_utilities import system
 from .file_utilities.filepath import Filepath
 from .sys_utilities.logging import Logger
 
@@ -20,8 +19,9 @@ from .user_configuartion.config import Config
 from .client_config import SERVER_VERSION, IS_TEST_BUILD
 from . import shared
 
-logger_errors = logging.getLogger('VIM_errors')
-logger = logging.getLogger('VIM_main')
+logger_errors = logging.getLogger("VIM_errors")
+logger = logging.getLogger("VIM_main")
+
 
 class Server:
 
@@ -31,34 +31,26 @@ class Server:
     request_lookups = {
         "handshake": lambda: True,
         "get_server_version": lambda: SERVER_VERSION,
-
         # system stuff
-        "start_game": System.start_game,
-        "get_running_state": System.are_processes_running,
+        "start_game": system.start_game,
+        "get_running_state": system.are_processes_running,
         "autodetect_account": shared.client.autodetect_account,
-
         # config stuff
         "fetch_config": lambda: shared.config,
         "update_config": Config.update_config,
-
         # inventory/loadout stuff
         "fetch_loadout": shared.client.fetch_loadout,
         "fetch_inventory": Skin_Manager.fetch_inventory,
         "fetch_profiles": Profile_Manager.fetch_profiles,
-
         "refresh_profiles": Profile_Manager.refresh_profiles,
         "refresh_skin_inventory": Skin_Manager.refresh_skin_inventory,
         "refresh_buddy_inventory": Buddy_Manager.refresh_buddy_inventory,
-
         "randomize_skins": Skin_Randomizer.randomize,
         "randomize_buddies": Buddy_Randomizer.randomize,
-
         "put_weapon": shared.client.put_weapon,
         "put_buddies": shared.client.put_buddies,
-
-        #"update_skin_inventory": Skin_Manager.update_inventory,
+        # "update_skin_inventory": Skin_Manager.update_inventory,
         "update_buddy_inventory": Buddy_Manager.update_inventory,
-
         # profile stuff
         "create_profile": Profile_Manager.generate_empty_profile,
         "fetch_profile_metadatas": Profile_Manager.fetch_profile_metadata,
@@ -66,20 +58,18 @@ class Server:
         "update_profile": Profile_Manager.update_profile,
         "fetch_profile": Profile_Manager.fetch_profile,
         "apply_profile": Profile_Manager.apply_profile,
-        
         "favorite_all_buddies": Buddy_Manager.favorite_all,
-
         # game state stuff
         "force_update_game_state": Client_State.update_game_state,
     }
 
     @staticmethod
-    def start():
+    async def start():
         if not os.path.exists(Filepath.get_appdata_folder()):
             os.mkdir(Filepath.get_appdata_folder())
 
         Logger.create_logger()
-        
+
         shared.loop = asyncio.get_event_loop()
 
         Config.init_config()
@@ -87,10 +77,14 @@ class Server:
         # iniitalize any submodules
         client_state = Client_State()
 
-        #start websocket server
-        start_server = websockets.serve(Server.ws_entrypoint, "", 8765)
-        
-        print(f"open {'https://colinhartigan.github.io/valorant-inventory-manager' if not IS_TEST_BUILD else 'https://colinhartigan.github.io/VIM-test-client'} in your browser to use VIM")
+        # start websocket server
+        async with serve(Server.ws_entrypoint, "localhost", 8765) as ws:
+            await ws.serve_forever()
+        # start_server = websockets.serve(Server.ws_entrypoint, "localhost", 8765)
+
+        print(
+            f"open {'https://colinhartigan.github.io/valorant-inventory-manager' if not IS_TEST_BUILD else 'https://colinhartigan.github.io/VIM-test-client'} in your browser to use VIM"
+        )
         shared.loop.run_until_complete(start_server)
 
         # initialize any asynchronous submodules
@@ -98,9 +92,8 @@ class Server:
 
         shared.loop.run_forever()
 
-
     @staticmethod
-    async def ws_entrypoint(websocket, path):
+    async def ws_entrypoint(websocket):
         logger.debug("a client connected")
         logger.debug(shared.sockets)
         shared.sockets.append(websocket)
@@ -123,7 +116,9 @@ class Server:
                     }
                     if inspect.iscoroutinefunction(Server.request_lookups[request]):
                         if has_kwargs:
-                            payload["data"] = await Server.request_lookups[request](**args)
+                            payload["data"] = await Server.request_lookups[request](
+                                **args
+                            )
                         else:
                             payload["data"] = await Server.request_lookups[request]()
                     else:
@@ -134,12 +129,12 @@ class Server:
                 else:
                     payload = {
                         "success": False,
-                        "data": "could not find the specified request"
+                        "data": "could not find the specified request",
                     }
 
                 await websocket.send(json.dumps(payload))
                 logger.debug(f"response:\n{json.dumps(payload)} ")
-        
+
         except ConnectionClosedOK:
             logger.info("disconnected")
             shared.sockets.pop(shared.sockets.index(websocket))
@@ -147,12 +142,10 @@ class Server:
         except ConnectionClosedError:
             logger.info("disconnected w/ error")
             shared.sockets.pop(shared.sockets.index(websocket))
-            
+
         except Exception:
             logger_errors.error("----- EXCEPTION -----")
             logger_errors.error(traceback.format_exc())
 
         except:
             logger.error("idk what even happened to get here")
-
-

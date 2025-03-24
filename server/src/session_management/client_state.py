@@ -2,13 +2,14 @@ import asyncio, traceback, json, logging
 
 from ..randomizers.skin_randomizer import Skin_Randomizer
 from ..randomizers.buddy_randomizer import Buddy_Randomizer
-from ..sys_utilities.system import System
+from ..sys_utilities import system
 from ..broadcast import broadcast
 
 from ..client_config import CLIENT_STATE_REFRESH_INTERVAL
-from .. import shared 
+from .. import shared
 
-logger = logging.getLogger('VIM_main')
+logger = logging.getLogger("VIM_main")
+
 
 class Client_State:
 
@@ -29,6 +30,7 @@ class Client_State:
 
     async def dispatch_randomizer(self, type):
         logger.debug("randomizing")
+        print("randomizing")
         if type == "skins":
             await Skin_Randomizer.randomize()
         elif type == "buddies":
@@ -36,34 +38,61 @@ class Client_State:
 
     async def randomizer_check(self):
         if self.presence is not None and self.presence != {}:
-            if (self.presence["sessionLoopState"] != self.previous_presence["sessionLoopState"]) and (self.previous_presence["sessionLoopState"] == "INGAME" and self.presence["sessionLoopState"] == "MENUS"):
-                if shared.config["skin_randomizer"]["settings"]["auto_skin_randomize"]["value"] == True:
+            if (
+                self.presence["sessionLoopState"]
+                != self.previous_presence["sessionLoopState"]
+            ) and (
+                self.previous_presence["sessionLoopState"] == "INGAME"
+                and self.presence["sessionLoopState"] == "MENUS"
+            ):
+                if (
+                    shared.config["skin_randomizer"]["settings"]["auto_skin_randomize"][
+                        "value"
+                    ]
+                    == True
+                ):
                     if self.inrange:
 
-                        if shared.config["skin_randomizer"]["settings"]["randomize_after_range"]["value"] == True:
+                        if (
+                            shared.config["skin_randomizer"]["settings"][
+                                "randomize_after_range"
+                            ]["value"]
+                            == True
+                        ):
                             await self.dispatch_randomizer("skins")
                             self.inrange = False
                         else:
                             self.inrange = False
-                            return 
+                            return
                     else:
+                        print("dispatching randomizer: skins")
                         await self.dispatch_randomizer("skins")
-                
-                if shared.config["skin_randomizer"]["settings"]["auto_skin_randomize"]["value"] == True:
+
+                if (
+                    shared.config["skin_randomizer"]["settings"]["auto_skin_randomize"][
+                        "value"
+                    ]
+                    == True
+                ):
                     await self.dispatch_randomizer("buddies")
 
-
     async def check_presence(self):
-        self.previous_presence = self.presence 
+        self.previous_presence = self.presence
         changed = False
         try:
             self.presence = self.valclient.fetch_presence()
-            if self.presence["sessionLoopState"] == "INGAME" or self.presence["sessionLoopState"] == "PREGAME":
+            if (
+                self.presence["sessionLoopState"] == "INGAME"
+                or self.presence["sessionLoopState"] == "PREGAME"
+            ):
                 shared.ingame = True
             else:
                 shared.ingame = False
 
-            if (self.presence["sessionLoopState"] != self.previous_presence["sessionLoopState"]):
+            if (
+                self.presence["sessionLoopState"]
+                != self.previous_presence["sessionLoopState"]
+            ):
                 changed = True
 
             if self.presence["provisioningFlow"] == "ShootingRange":
@@ -71,7 +100,7 @@ class Client_State:
 
         except:
             self.reset()
-            shared.ingame = False 
+            shared.ingame = False
 
         return changed
 
@@ -82,26 +111,21 @@ class Client_State:
         while True:
             if self.client.ready:
                 changed = await self.check_presence()
+                print(f"  {changed=}")
                 await self.check_game_running()
-                
+
                 # check for randomizer
                 await self.randomizer_check()
 
-                if changed: #only need to broadcast this if the state actually changed
+                if changed:  # only need to broadcast this if the state actually changed
                     await Client_State.update_game_state()
-            
+
             else:
                 await self.check_game_running()
 
             await asyncio.sleep(CLIENT_STATE_REFRESH_INTERVAL)
 
-            
     async def update_game_state():
-        payload = {
-            "event": "game_state",
-            "data": {
-                "state": shared.ingame
-            }
-        }
+        payload = {"event": "game_state", "data": {"state": shared.ingame}}
         await broadcast(payload)
         return True

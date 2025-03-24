@@ -4,15 +4,20 @@ from ..file_utilities.filepath import Filepath
 from .. import shared
 from ..client_config import DEFAULT_CONFIG
 
-logger = logging.getLogger('VIM_main')
+logger = logging.getLogger("VIM_main")
+
 
 class Config:
 
     def init_config():
         try:
-            with open(Filepath.get_path(os.path.join(Filepath.get_appdata_folder(), "config.json"))) as f:
+            with open(
+                Filepath.get_path(
+                    os.path.join(Filepath.get_appdata_folder(), "config.json")
+                )
+            ) as f:
                 config = json.load(f)
-                
+
                 shared.config = config
         except:
             Config.create_default_config()
@@ -22,19 +27,29 @@ class Config:
             Config.verify_config()
         except:
             Config.create_default_config()
-        
+
         logger.debug(f"config:\n{json.dumps(shared.config)}")
 
     def create_default_config():
-        with open(Filepath.get_path(os.path.join(Filepath.get_appdata_folder(), "config.json")), "w") as f:
+        with open(
+            Filepath.get_path(
+                os.path.join(Filepath.get_appdata_folder(), "config.json")
+            ),
+            "w",
+        ) as f:
             json.dump(DEFAULT_CONFIG, f)
 
     def save_config():
-        with open(Filepath.get_path(os.path.join(Filepath.get_appdata_folder(), "config.json")), "w") as f:
+        with open(
+            Filepath.get_path(
+                os.path.join(Filepath.get_appdata_folder(), "config.json")
+            ),
+            "w",
+        ) as f:
             json.dump(shared.config, f)
 
     def update_config(new_config):
-        shared.config = new_config 
+        shared.config = new_config
         Config.save_config()
         return shared.config
 
@@ -48,7 +63,7 @@ class Config:
                 if current_key not in default.keys():
                     del current[current_key]
 
-            for default_key,default_value in default.items():
+            for default_key, default_value in default.items():
 
                 # check for missing config keys
                 if default_key not in current.keys():
@@ -60,7 +75,7 @@ class Config:
                         current[default_key][setting_key] = setting_value
 
                 # valid config types are
-                # section, string, int, bool, list_selection 
+                # section, string, int, bool, list_selection
 
                 # if the config value is locked, make sure it's what it should be
                 if default_value.get("attrs"):
@@ -78,25 +93,21 @@ class Config:
                     current[default_key]["description"] = default_value["description"]
 
                 if default_value.get("type") == "section":
-                    check_next_layer(default_value["settings"], current[default_key]["settings"])
+                    check_next_layer(
+                        default_value["settings"], current[default_key]["settings"]
+                    )
 
         check_next_layer(DEFAULT_CONFIG, config)
 
         shared.config = config
         Config.save_config()
 
-
-
-                
-
-
-
     # def verify_config():
     #     # ???????
     #     # my brain hurts
     #     # i bet theres a way better way to write this but im just braindead
     #     config = Config.fetch_config()
-        
+
     #     def check_for_new_vars(blank,current):
     #         for key,value in blank.items():
     #             if not key in current.keys():
@@ -104,16 +115,16 @@ class Config:
     #             if type(value) != type(current[key]):
     #                 # if type of option is changed
     #                 current[key] = value
-    #             if key == "version": 
+    #             if key == "version":
     #                 # version can't be changed by the user lmao
     #                 current[key] = value
-    #             if key == "region": 
+    #             if key == "region":
     #                 current[key][1] = Client.fetch_regions() # update regions jic ya know
     #             if isinstance(value,list):
     #                 current[key][1] = blank[key][1]
     #             if isinstance(value,dict):
     #                 check_for_new_vars(value,current[key])
-            
+
     #     def remove_unused_vars(blank,current):
     #         def check(bl,cur):
     #             for key,value in list(cur.items()):
@@ -151,4 +162,5 @@ class Config:
     #         os.mkdir(Filepath.get_appdata_folder())
     #     with open(Filepath.get_path(os.path.join(Filepath.get_appdata_folder(), "config.json")), "w") as f:
     #         json.dump(Config.default_config, f)
-    #     return Config.fetch_config() 
+    #     return Config.fetch_config()
+
