@@ -30,6 +30,7 @@ const weaponImageScales = {
     "9c82e19d-4575-0200-1a81-3eacf00cf872": ["90% auto", "auto 70%"], //vandal
 
     "c4883e50-4494-202c-3ec3-6b8a9284f00b": ["90% auto", "auto 42%"], //marshal
+    "5f0aaf7a-4289-3998-d5ff-eb9a5cf7ef5c": ["90% auto", "auto 42%"], // outlaw
     "a03b24d3-4319-996d-0f8c-94bbfba1dfc7": ["90% auto", "auto 50%"], //operator
 
     "55d8a0f4-4274-ca67-fe2c-06ab45efdf58": ["90% auto", "auto 45%"], //ares
@@ -97,7 +98,7 @@ function WeaponSelectDialogItem(props) {
             <div
                 className={classes.weaponImage}
                 style={{
-                    //backgroundPosition: props.uuid === "2f59173c-4bed-b6c3-2191-dea9b58be9c7" ? "50% 35%" : (!props.useLargeWeaponImage ? "50% 40%" : "50% 50%"), 
+                    //backgroundPosition: props.uuid === "2f59173c-4bed-b6c3-2191-dea9b58be9c7" ? "50% 35%" : (!props.useLargeWeaponImage ? "50% 40%" : "50% 50%"),
                     backgroundPosition: "50% 50%",
                     backgroundImage: `url(${skinData.skin_image})`,
                     backgroundSize: weaponImageScales[weaponUuid][0],

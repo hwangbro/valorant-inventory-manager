@@ -4,7 +4,7 @@ const Config = {
     VERSION_CHECK_ENABLED: true,
     TEST_BUILD: false,
 
-    WEBSOCKET_URL: "ws://localhost:8765", 
+    WEBSOCKET_URL: "ws://localhost:8765",
     SOCKET_RETRY_THRESHOLD: 5,
 
     WEIGHT_INTERVALS: 10,
@@ -135,6 +135,12 @@ const loadoutGridOrder = [
             "sidearm": true,
             "uuid": "e336c6b8-418d-9340-d77f-7a9e4cfe0702",
             "displayName": "Sheriff",
+        },
+        {
+            "type": "weapon",
+            "sidearm": false,
+            "uuid": "5f0aaf7a-4289-3998-d5ff-eb9a5cf7ef5c",
+            "displayName": "Outlaw"
         },
         {
             "type": "placeholder",
