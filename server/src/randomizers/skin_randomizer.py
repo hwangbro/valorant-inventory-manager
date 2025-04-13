@@ -9,6 +9,7 @@ class Skin_Randomizer:
 
     @staticmethod
     async def randomize():
+        print("Randomizing..")
         valclient = shared.client.client
         loadout = valclient.fetch_player_loadout()
         equipped_skin_ids = [weapon["SkinID"] for weapon in loadout["Guns"]]

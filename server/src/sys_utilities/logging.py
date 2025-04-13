@@ -49,24 +49,29 @@ class Logger:
                     ),  # only print to console if in debug mode
                     "level": "DEBUG",
                     "propagate": True,
+                    "encoding": "UTF-8",
                 },
                 "VIM_inventory": {
                     "handlers": ["debug_file_handler"],
                     "level": "DEBUG",
                     "propagate": True,
+                    "encoding": "UTF-8",
                 },
                 "VIM_errors": {
                     "handlers": ["debug_console_handler", "debug_file_handler"],
                     "level": "DEBUG",
+                    "encoding": "UTF-8",
                     "propagate": True,
                 },
                 "websockets.server": {
                     "handlers": ["debug_file_handler"],
+                    "encoding": "UTF-8",
                     "level": "DEBUG",
                     "propagate": True,
                 },
                 "urllib3.connectionpool": {
                     "handlers": ["debug_file_handler"],
+                    "encoding": "UTF-8",
                     "level": "DEBUG",
                     "propagate": True,
                 },

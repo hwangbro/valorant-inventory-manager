@@ -76,19 +76,14 @@ class Server:
 
         # iniitalize any submodules
         client_state = Client_State()
-
-        # start websocket server
-        async with serve(Server.ws_entrypoint, "localhost", 8765) as ws:
-            await ws.serve_forever()
-        # start_server = websockets.serve(Server.ws_entrypoint, "localhost", 8765)
-
-        print(
-            f"open {'https://colinhartigan.github.io/valorant-inventory-manager' if not IS_TEST_BUILD else 'https://colinhartigan.github.io/VIM-test-client'} in your browser to use VIM"
-        )
-        shared.loop.run_until_complete(start_server)
+        print("open http://vlm.hwangbro.com/#/vim in your browser to use VIM")
 
         # initialize any asynchronous submodules
-        shared.loop.run_until_complete(client_state.loop())
+        print("starting loop")
+        shared.loop.create_task(client_state.loop())
+
+        async with serve(Server.ws_entrypoint, "localhost", 8765) as ws:
+            await ws.serve_forever()
 
         shared.loop.run_forever()
 

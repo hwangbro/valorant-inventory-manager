@@ -3,6 +3,7 @@ from . import auth
 import json
 import requests
 import urllib3
+import base64
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -184,6 +185,18 @@ class ValClient:
         Note: only works on self or active user''
         """
         puuid = self._check_puuid(puuid)
+        data = self.call(
+            call_type="get",
+            endpoint="/chat/v4/presences",
+            endpoint_type="local",
+            exceptions={},
+        )
+        try:
+            for presence in data["presences"]:
+                if presence["puuid"] == puuid:
+                    return json.loads(base64.b64decode(presence["private"]))
+        except:
+            return None
 
     def riotclient_session_fetch_sessions(self):
         """

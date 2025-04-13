@@ -33,9 +33,10 @@ def get_auth_headers(
 
     # headers for pd/glz endpoints
     local_headers = {"Authorization": f"Basic {token}"}
+    uri = f"https://127.0.0.1:{port}/entitlements/v1/token"
 
     response = requests.get(
-        f"https://127.0.0.1:{port}/entitlements/v1/token",
+        uri,
         headers=local_headers,
         verify=False,
     )

@@ -34,7 +34,7 @@ class Client:
         ).json()["data"]
 
     def connect(self, force_local=False):
-        if self.ready == False:
+        if not self.ready:
             try:
                 if AUTH_MODE == "local" or force_local:
                     region = self.autodetect_region()
@@ -48,15 +48,6 @@ class Client:
                             logger_errors.error(traceback.format_exc())
                     else:
                         self.ready = False
-                # elif AUTH_MODE == "credentials":
-                #     self.client = ValClient(
-                #         region=os.getenv("REGION"),
-                #         auth={
-                #             "username": os.getenv("VALORANT_USERNAME"),
-                #             "password": os.getenv("VALORANT_PASSWORD"),
-                #         },
-                # )
-
                 if self.client is None:
                     logger.debug("client is not ready")
                     self.ready = False
@@ -101,7 +92,8 @@ class Client:
     def autodetect_region(self):
         try:
             client = ValClient(region="na")
-        except:
+        except Exception as e:
+            print(f"EXCEPTION in autodetect region: {e}")
             return None
         sessions = client.riotclient_session_fetch_sessions()
         for _, session in sessions.items():
